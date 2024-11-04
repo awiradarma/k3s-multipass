@@ -1,0 +1,63 @@
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: myingressroute
+spec:
+  routes:
+    - match: PathPrefix(`/hello`)
+      kind: Rule
+      services:
+        - name: hello-world
+          port: 80
+      middlewares:
+        - name: stripprefix
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-world
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+  selector:
+    app:  hello-world
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-world-nginx
+spec:
+  selector:
+    matchLabels:
+      app: hello-world
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: hello-world
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: hello-world-volume
+          mountPath: /usr/share/nginx/html
+      volumes:
+      - name: hello-world-volume
+        configMap:
+          name: hello-world
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: stripprefix
+spec:
+  stripPrefix:
+    prefixes:
+      - /hello
+
