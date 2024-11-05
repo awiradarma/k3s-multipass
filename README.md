@@ -68,3 +68,16 @@ ubuntu@master:~$ curl http://10.165.182.47/hello
 ubuntu@master:~$ 
 
 ```
+
+### Notes
+To install helm in the master node:
+```
+sudo snap install helm --classic
+```
+
+Useful multipass commands
+```
+multipass list
+multipass stop master
+multipass start master
+```
