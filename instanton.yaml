@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: open-liberty-instanton
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: open-liberty-instanton
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: open-liberty-instanton
+    spec:
+      containers:
+      - image: localhost/sb_after
+        imagePullPolicy: IfNotPresent
+        name: app
+        ports:
+        - containerPort: 9080
+          name: 9080-tcp
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 1
+            memory: 512Mi
+          requests:
+            cpu: 500m
+            memory: 256Mi
+        securityContext:
+          runAsNonRoot: true
+          privileged: false
+          capabilities:
+            add:
+            - CHECKPOINT_RESTORE
+            - SETPCAP
+            drop:
+            - ALL
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: springboot-ingress
+spec:
+  routes:
+    - match: PathPrefix(`/spring`)
+      kind: Rule
+      services:
+        - name: instanton
+          port: 9080
+      middlewares:
+        - name: sbstripprefix
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: instanton
+spec:
+  ports:
+    - port: 9080
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: open-liberty-instanton
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: sbstripprefix
+spec:
+  stripPrefix:
+    prefixes:
+      - /spring

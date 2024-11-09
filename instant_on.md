@@ -1,6 +1,6 @@
 ## Experiment with InstantOn on k3s
 
-Exporting an instant-on container image to tar ball
+### Exporting an instant-on container image to tar ball
 ```
 andre@cyber:~/workspace/graalvm_comparison/Simple$ sudo podman save localhost/sb_after:latest -o sb_after.tar
 Copying blob f72362c98463 done   | 
@@ -43,12 +43,12 @@ drwxrwxr-x 11 andre andre      4096 Nov  6 20:03 target
 -rw-r--r--  1 root  root  579154432 Nov  7 20:47 sb_after.tar
 ```
 
-Transferring the tar ball to the multipass VM
+### Transferring the tar ball to the multipass VM
 ```
 $ multipass transfer sb_after.tar master:.
 ```
 
-On the multipass VM, load the tar ball
+### On the multipass VM, load the tar ball
 ```
 ubuntu@master:~$ ls -ltr
 total 565600
@@ -84,51 +84,9 @@ ubuntu@master:~$
 
 ```
 
-## Create a deployment 
+### Create a deployment 
 
-The yaml file
-```
-ubuntu@master:~$ cat instanton.yaml 
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: open-liberty-instanton
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: open-liberty-instanton
-  template:
-    metadata:
-      labels:
-        app.kubernetes.io/name: open-liberty-instanton
-    spec:
-      containers:
-      - image: localhost/sb_after
-        imagePullPolicy: IfNotPresent
-        name: app
-        ports:
-        - containerPort: 9080
-          name: 9080-tcp
-          protocol: TCP
-        resources:
-          limits:
-            cpu: 1
-            memory: 512Mi
-          requests:
-            cpu: 500m
-            memory: 256Mi
-        securityContext:
-          runAsNonRoot: true
-          privileged: false
-          capabilities:
-            add:
-            - CHECKPOINT_RESTORE
-            - SETPCAP
-            drop:
-            - ALL
-
-```
+The yaml file: [instanton.yaml](instanton.yaml)
 
 Deploy the YAML and check the log file
 ```
@@ -139,6 +97,9 @@ ubuntu@master:~$
 ubuntu@master:~$ 
 ubuntu@master:~$ kubectl apply -f instanton.yaml
 deployment.apps/open-liberty-instanton created
+ingressroute.traefik.io/springboot-ingress created
+service/instanton created
+middleware.traefik.io/sbstripprefix created
 ubuntu@master:~$ 
 ubuntu@master:~$ 
 ubuntu@master:~$ kubectl get po
@@ -155,4 +116,37 @@ ubuntu@master:~$ kubectl logs open-liberty-instanton-57847f5fcc-whv9f
 [AUDIT   ] CWWKF0011I: The defaultServer server is ready to run a smarter planet. The defaultServer server started in 0.085 seconds.
 ubuntu@master:~$ 
 
+ubuntu@master:~$ kubectl get svc
+NAME          TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+hello-world   ClusterIP   10.43.101.100   <none>        80/TCP     5d23h
+instanton     ClusterIP   10.43.247.46    <none>        9080/TCP   7s
+kubernetes    ClusterIP   10.43.0.1       <none>        443/TCP    6d1h
+
+ubuntu@master:~$ kubectl get svc -n kube-system
+NAME             TYPE           CLUSTER-IP    EXTERNAL-IP      PORT(S)                      AGE
+kube-dns         ClusterIP      10.43.0.10    <none>           53/UDP,53/TCP,9153/TCP       6d1h
+metrics-server   ClusterIP      10.43.83.75   <none>           443/TCP                      6d1h
+traefik          LoadBalancer   10.43.16.24   10.165.182.250   80:31935/TCP,443:32387/TCP   6d1h
+
+```
+
+### Try to hit the URL
+
+```
+ubuntu@master:~$ curl -v http://10.165.182.250/spring/hello
+*   Trying 10.165.182.250:80...
+* Connected to 10.165.182.250 (10.165.182.250) port 80
+> GET /spring/hello HTTP/1.1
+> Host: 10.165.182.250
+> User-Agent: curl/8.5.0
+> Accept: */*
+> 
+< HTTP/1.1 200 OK
+< Content-Language: en-US
+< Content-Length: 11
+< Content-Type: text/plain;charset=UTF-8
+< Date: Sat, 09 Nov 2024 02:16:54 GMT
+< 
+* Connection #0 to host 10.165.182.250 left intact
+Hello thereubuntu@master:~$
 ```
