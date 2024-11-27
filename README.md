@@ -85,9 +85,9 @@ multipass start master
 Useful k3 info
 - Location of manifests directory: /var/lib/rancher/k3s/server/manifests
 - To expose traefik dashboard using port-forwarding and bind to all IP address (not just localhost/127.0.0.1) then use http://<external_ip>:9000/dashboard/
-  ```
+```
 $ kubectl -n kube-system port-forward deploy/traefik 9000:9000 --address 0.0.0.0
-  ```
+```
 - Other approach (using ingress) to expose as httP://mytraefikdashboard.io/dashboard/
 ```
 $ sudo vi /etc/hosts
