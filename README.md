@@ -81,3 +81,6 @@ multipass list
 multipass stop master
 multipass start master
 ```
+
+Useful k3 info
+- Location of manifests directory: /var/lib/rancher/k3s/server/manifests
