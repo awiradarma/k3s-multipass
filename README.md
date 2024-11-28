@@ -75,14 +75,14 @@ To install helm in the master node:
 sudo snap install helm --classic
 ```
 
-Useful multipass commands
+### Useful multipass commands
 ```
 multipass list
 multipass stop master
 multipass start master
 ```
 
-Useful k3 info
+### Useful k3 info
 - Location of manifests directory: /var/lib/rancher/k3s/server/manifests
 - To expose traefik dashboard using port-forwarding and bind to all IP address (not just localhost/127.0.0.1) then use http://<external_ip>:9000/dashboard/
 ```
@@ -106,4 +106,12 @@ Then on the k3s :
 $ kubectl create ingress traefik-dashboard --rule="mytraefikdashboard.io/*=traefik-dashboard:9000"
 ingress.networking.k8s.io/traefik-dashboard created
 $ 
+```
+
+### Misc
+- To install k9s
+```
+curl -o k9s.tar.gz -L https://github.com/derailed/k9s/releases/download/v0.32.7/k9s_Linux_amd64.tar.gz
+tar xfz k9s.tar.gz
+sudo cp k9s /usr/local/bin/k9s
 ```
