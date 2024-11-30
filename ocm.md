@@ -147,3 +147,9 @@ NAME    READY   STATUS    RESTARTS   AGE
 hello   1/1     Running   0          97s
 ubuntu@ocm2:~$ 
 ```
+- To delete the work, simply running kubectl delete -f filename does not work
+- Instead, use clusteradm delete work command
+```
+clusteradm delete work hello --cluster ocm2
+clusteradm get works --cluster ocm2
+```
