@@ -1,0 +1,23 @@
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: dapr-dashboard
+spec:
+  routes:
+    - match: PathPrefix(`/dashboard`)
+      kind: Rule
+      services:
+        - name: dapr-dashboard
+          port: 8080
+      middlewares:
+        - name: removeprefix
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: removeprefix
+spec:
+  stripPrefix:
+    prefixes:
+      - /dashboard
